@@ -1,10 +1,10 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import BottomTab from '../components/BottomTab';
+
 const Alphabet = () => {
   return (
-    <View style={styles.container}>
-      
+    <SafeAreaView style={styles.container}>
       <View style={styles.container3}>
         <View style={styles.container0}>
           <Image
@@ -17,16 +17,21 @@ const Alphabet = () => {
         <Image
           source={require('../../assets/images/ImagesLiveSings/abcde.png')}
           style={styles.abc}
+          resizeMode="contain"
         />
       </View>
 
-   
       <BottomTab />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0056b3',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   container3: {
     flex: 1,
     backgroundColor: '#007bff',
@@ -40,7 +45,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#ffffff',
     padding: 10,
-    marginBottom: 50,
+    marginBottom: 20,
     width: '100%',
   },
   icon0: {
@@ -51,21 +56,12 @@ const styles = StyleSheet.create({
   abc: {
     width: '100%',
     height: '60%',
-    marginRight: 10,
   },
   title0: {
     color: '#050a30',
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-  },
-  container: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    backgroundColor: '#0056b3',
-    width: '100%',
-    height: '100%',
-    position: 'relative',
   },
 });
 

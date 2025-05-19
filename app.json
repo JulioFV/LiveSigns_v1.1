@@ -34,6 +34,14 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+       [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(LiveSigns) to access your camera",
+          "microphonePermission": "Allow $(LiveSigns) to access your microphone",
+          "recordAudioAndroid": true
+        }
       ]
     ],
     "experiments": {
