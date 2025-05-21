@@ -1,22 +1,24 @@
+import axios from 'axios';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { setIdUsuario } from '../models/utils/session';
 
 
 const Login = () => {
- 
+
   const router = useRouter();
 
   const [email, setEmail] = useState('');
@@ -24,6 +26,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   const validarCampos = () => {
+
     if (!email || !password) {
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
@@ -37,9 +40,39 @@ const Login = () => {
     handleLogin();
   };
 
-  const handleLogin = async () => {
-    router.replace('/screens/Interpreter');
+const handleLogin = async () => {
+  setLoading(true);
+
+  try {
+    const formData = new URLSearchParams();
+    formData.append('email', email);
+    formData.append('password', password);
+
+    const response = await axios.post(
+      'https://darkseagreen-wasp-520101.hostingersite.com/ws/LiveSigns/ApiU.php?api=login',
+      formData.toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       }
+    );
+
+    const data = response.data;
+
+    if (data.contenido === true) {
+      await setIdUsuario(data.idUsuario);
+      router.replace('/screens/Interpreter');
+    } else {
+      Alert.alert('Error', data.aviso || 'Credenciales incorrectas');
+    }
+  } catch (error) {
+    console.error('Error en login:', error);
+    Alert.alert('Error de conexión', 'Inténtalo más tarde.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <ScrollView>
@@ -103,14 +136,10 @@ const Login = () => {
 
           <Text
             style={styles.footer}
-            onPress={() => router.push('/screens/RecoveryPassword')}
-          >
+            onPress={ () => router.push('/screens/RecoveryPassword')}>
             Recuperar Contraseña
           </Text>
-          <Text
-            style={styles.footer}
-            onPress={() => router.push('/screens/Registration')}
-          >
+          <Text style={styles.footer} onPress={() => router.push('/screens/Registration')}          >
             ¿No tienes cuenta? Regístrate
           </Text>
         </View>

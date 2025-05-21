@@ -99,7 +99,7 @@ const MemoryGame = () => {
 
   const handleFinishGame = () => {
     setModalVisible(false);
-    router.back(); // ← expo-router equivalent to navigation.goBack()
+    router.back(); 
   };
 
   return (

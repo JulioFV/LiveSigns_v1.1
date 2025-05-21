@@ -22,7 +22,7 @@ export default function BottomTab() {
       <View style={styles.icons}>
         <TouchableOpacity style={styles.iconItem} onPress={() => router.push('/screens/Learn')}>
           <Image source={require('../../assets/images/ImagesLiveSings/aprende.png')} style={styles.smallIcon} />
-          <Text>Aprende</Text>
+          <Text>Foro</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.iconItem} onPress={() => router.push('/screens/Alphabet')}>

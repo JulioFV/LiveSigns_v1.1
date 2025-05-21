@@ -1,20 +1,20 @@
 import {
-    CameraType,
-    CameraView,
-    PermissionStatus,
-    useCameraPermissions,
-    useMicrophonePermissions,
+  CameraType,
+  CameraView,
+  PermissionStatus,
+  useCameraPermissions,
+  useMicrophonePermissions,
 } from 'expo-camera';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import BottomTab from '../components/BottomTab';
 
@@ -29,7 +29,7 @@ const Interpreter = () => {
   const [prediction, setPrediction] = useState('');
   const [facing, setFacing] = useState<CameraType>('back');
   const [countdown, setCountdown] = useState<number | null>(null);
-  const countdownInterval = useRef<NodeJS.Timeout | null>(null);
+  const countdownInterval = useRef<number | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -94,7 +94,7 @@ const Interpreter = () => {
         type: 'video/mp4',
       } as any);
 
-      const response = await fetch('http://192.168.1.69:5000/upload_video', {
+      const response = await fetch('http://192.168.1.133:5000/upload_video', {
         method: 'POST',
         body: formData,
         headers: { 'Content-Type': 'multipart/form-data' },

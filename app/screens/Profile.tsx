@@ -1,38 +1,111 @@
+import axios from 'axios';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import BottomTab from '../components/BottomTab';
+import { getIdUsuario } from '../models/utils/session';
+
+interface UserData {
+  idUsuario: number;
+  nombre: string;
+  email: string;
+}
 
 const Profile = () => {
   const router = useRouter();
+  const [loading, setLoading] = React.useState(false);
+  const [userData, setUserData] = React.useState<UserData | null>(null);
 
-  const cerrarSesion = () => {
-    router.replace('/screens/Login'); // Redirige y reemplaza para evitar volver atrás
+  React.useEffect(() => {
+    handleGetCredentials();
+  }, []);
+
+  const handleGetCredentials = async () => {
+    setLoading(true);
+    try {
+   
+      const id = await getIdUsuario();
+      if (!id) {
+        return Alert.alert('Error', 'No se encontró sesión activa');
+      }
+
+      
+      const formData = new URLSearchParams();
+      formData.append('id', id.toString());
+
+      const response = await axios.post(
+        'https://darkseagreen-wasp-520101.hostingersite.com/ws/LiveSigns/ApiU.php?api=getCredentials',
+        formData.toString(),
+        {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        }
+      );
+
+      const contenido = response.data.contenido;
+      if (contenido) {
+ 
+        setUserData({
+          idUsuario: contenido.idUsuario,
+          nombre: contenido.nombre,
+          email: contenido.email,
+        });
+      } else {
+        Alert.alert('Error', response.data.aviso || 'No se obtuvieron datos');
+      }
+    } catch (error) {
+      console.error('Error en perfil:', error);
+      Alert.alert('Error de conexión', 'Inténtalo más tarde.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const cerrarSesion = async () => {
+  
+    router.replace('/screens/Login');
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.container3}>
-        <View style={styles.container0}>
-          <Text style={styles.title0}>Perfil</Text>
-        </View>
+      <View style={styles.profileCard}>
+        <Text style={styles.title}>Perfil</Text>
 
-        <View style={styles.circle1}>
+        <View style={styles.avatarWrapper}>
           <Image
             source={require('../../assets/images/ImagesLiveSings/perfil.png')}
-            style={styles.profileIcon}
+            style={styles.avatar}
           />
         </View>
 
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Datos del Usuario</Text>
-          <Text>Nombre: Nombre Usuario</Text>
-          <Text>Correo Electrónico: NombreUsuario@gmail.com</Text>
-          <Text>Contraseña: **********</Text>
-        </View>
+        {userData ? (
+          <View style={styles.infoCard}>
+            <Text style={styles.infoTitle}>Datos del Usuario</Text>
+            <Text>Nombre: {userData.nombre}</Text>
+            <Text>Correo: {userData.email}</Text>
+            <Text>Contraseña: **********</Text>
+          </View>
+        ) : (
+          <Text style={styles.noDataText}>No hay datos para mostrar</Text>
+        )}
 
         <TouchableOpacity onPress={cerrarSesion}>
-          <Text style={styles.username}>Cerrar Sesión</Text>
+          <Text style={styles.logout}>Cerrar Sesión</Text>
         </TouchableOpacity>
       </View>
 
@@ -42,76 +115,61 @@ const Profile = () => {
 };
 
 const styles = StyleSheet.create({
-  container3: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: '#007bff',
-    alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
   },
   container: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    flex: 1,
     backgroundColor: '#0056b3',
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-  },
-  container0: {
-    flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    padding: 10,
-    marginBottom: 50,
-    width: '100%',
   },
-  circle1: {
-    backgroundColor: '#fff',
-    borderRadius: 50,
-    width: 100,
-    height: 100,
+  profileCard: {
+    flex: 1,
+    width: '95%',
+    backgroundColor: '#007bff',
+    marginTop: 20,
+    borderRadius: 10,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    padding: 20,
   },
-  profileIcon: {
-    width: '60%',
-    height: '60%',
-  },
-  username: {
-    fontSize: 20,
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#fff',
     marginBottom: 20,
-    fontWeight: 'bold',
+  },
+  avatarWrapper: {
+    backgroundColor: '#fff',
+    borderRadius: 50,
     padding: 10,
+    marginBottom: 15,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
   },
   infoCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 15,
     width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 20,
   },
   infoTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  title0: {
-    color: '#050a30',
-    fontSize: 24,
+  noDataText: {
+    color: '#fff',
+    marginVertical: 20,
+  },
+  logout: {
+    color: '#fff',
+    fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center',
+    marginTop: 10,
   },
 });
 

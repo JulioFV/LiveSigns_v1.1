@@ -1,18 +1,20 @@
+import axios from 'axios';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Modal,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
+import SuccessModal from '../components/SuccessModal';
 
 const Registration = () => {
   const router = useRouter();
@@ -20,8 +22,9 @@ const Registration = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [nombre, setNombre] = useState<string>('');
+  const [success, setSuccess] = useState(false);
 
-  const registrarUsuario = async () => {
+  const validarCampos = async () => {
     if (!email.includes('@') || !email.includes('.') || email.length < 5) {
       Alert.alert('Error', 'El correo electrónico no es válido');
       return;
@@ -31,12 +34,50 @@ const Registration = () => {
     } else if (!email || !password || !nombre) {
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
-    } else if (password.includes('*')|| password.includes('!')|| password.includes('@')|| password.includes('#')|| password.includes('$')|| password.includes('%')) {
+    } else if (password.includes('*') || password.includes('!') || password.includes('@') || password.includes('#') || password.includes('$') || password.includes('%')) {
       Alert.alert('Error', 'La contraseña no debe contener caracteres especiales como * ! @ # $ %');
       return;
     }
+    handleRegister();
+  };
 
-    
+  const handleRegister = async () => {
+    setLoading(true);
+    try {
+      const formData = new URLSearchParams();
+      formData.append('nombre', nombre);
+      formData.append('email', email);
+      formData.append('password', password);
+
+      const response = await axios.post(
+        'https://darkseagreen-wasp-520101.hostingersite.com/ws/LiveSigns/ApiU.php?api=register',
+        formData.toString(),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setLoading(false);
+        Alert.alert('Éxito', 'Registro exitoso');
+        setSuccess(true);
+        router.push('/screens/Login');
+      } else {
+        Alert.alert('Error', response.data.message);
+      }
+    } catch (error: any) {
+      if (error.response) {
+        Alert.alert('Error del servidor', error.response.data?.message || 'Respuesta no válida del servidor');
+      } else if (error.request) {
+        Alert.alert('Error de conexión', 'No se pudo conectar al servidor');
+      } else {
+        Alert.alert('Error', 'Error desconocido al registrar');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -75,7 +116,7 @@ const Registration = () => {
             autoCapitalize="none"
             placeholderTextColor="#fff"
           />
-          <TouchableOpacity style={styles.button} onPress={registrarUsuario}>
+          <TouchableOpacity style={styles.button} onPress={validarCampos}>
             <Text style={styles.buttonText}>Registrarme</Text>
           </TouchableOpacity>
 
@@ -93,6 +134,15 @@ const Registration = () => {
             </View>
           </View>
         </Modal>
+
+        <SuccessModal
+          visible={success}
+          message="Usuario registrado con éxito"
+          onClose={() => {
+            setSuccess(false);
+            router.push('/screens/Login');
+          }}
+        />
       </SafeAreaView>
     </PaperProvider>
   );
