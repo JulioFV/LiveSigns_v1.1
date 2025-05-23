@@ -46,7 +46,7 @@ const RecoveryPasswordp = ({
 
     setLoading(true);
     try {
-      // 1) Buscar ID por email
+
       const buscar = new URLSearchParams({ email });
       const respBuscar = await axios.post(
         "https://darkseagreen-wasp-520101.hostingersite.com/ws/LiveSigns/ApiU.php?api=searchemail",
@@ -63,10 +63,8 @@ const RecoveryPasswordp = ({
       const idUsuario = contenido.idUsuario;
       await setIdUsuario(idUsuario);
 
-      // 2) Generar nueva contraseña
       const nuevaPwd = generarContrasena();
 
-      // 3) Actualizar contraseña en backend
       const actualizar = new URLSearchParams({
         password: nuevaPwd,
         id: idUsuario,

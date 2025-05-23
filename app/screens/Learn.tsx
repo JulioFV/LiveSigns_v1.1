@@ -1,43 +1,144 @@
-import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  Button,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import BottomTab from '../components/BottomTab';
+import CardForo from '../components/CardForo';
+import { getIdUsuario } from '../models/utils/session';
+
+interface Comentario {
+  id: number;
+  comentario: string;
+  creado_en: string;
+  autor: string;
+}
 
 const Learn = () => {
+  const [comment, setComment] = useState('');
+  const [comments, setComments] = useState<Comentario[]>([]); 
+  const [loading, setLoading] = useState(false);
+
+  const handleGetComments = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        'https://darkseagreen-wasp-520101.hostingersite.com/ws/LiveSigns/ApiF.php?api=getComments'
+      );
+
+      const arr = response.data.contenido ?? response.data;
+      if (Array.isArray(arr)) {
+        setComments(arr);
+      } else {
+        console.error('Se esperaba un arreglo, llegó:', arr);
+        setComments([]);
+      }
+    } catch (error) {
+      console.error('Error al obtener los comentarios:', error);
+      setComments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  useEffect(() => {
+    handleGetComments();
+  }, []);
+
+  const handleCommentSubmit = async () => {
+    if (!comment.trim()) {
+      return Alert.alert('Error', 'Por favor, ingresa un comentario.');
+    }
+
+    setLoading(true);
+    try {
+      const idUsuario = await getIdUsuario();
+      const formData = new URLSearchParams({
+        comentario: comment,
+        idUsuario: getIdUsuario(),
+      });
+
+      const response = await axios.post(
+        'https://darkseagreen-wasp-520101.hostingersite.com/ws/LiveSigns/ApiF.php?api=addComment',
+        formData.toString(),
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      );
+
+      if (response.data.success) {
+        Alert.alert('Éxito', 'Comentario registrado correctamente');
+        setComment('');
+        handleGetComments();
+      } else {
+        Alert.alert('Comentario guardado con exito');
+      }
+    } catch (error: any) {
+      if (error.response) {
+        Alert.alert(
+          'Error del servidor',
+          error.response.data?.message || 'Respuesta no válida'
+        );
+      } else if (error.request) {
+        Alert.alert('Error de conexión', 'No se pudo conectar al servidor');
+      } else {
+        Alert.alert('Error', 'Ocurrió un error inesperado');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.container3}>
+      <ScrollView contentContainerStyle={styles.container3}>
         <View style={styles.container0}>
           <Image
-            source={require('../../assets/images/ImagesLiveSings/aprende.png')}
+            source={require('../../assets/images/ImagesLiveSings/foro.jpg')}
             style={styles.icon0}
           />
-          <Text style={styles.title0}>Aprende</Text>
+          <Text style={styles.title0}>Foro de Dudas</Text>
         </View>
 
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Vocabulario básico y frases comunes</Text>
-          <Text>Saludos y presentaciones (Hola, ¿cómo estás?).</Text>
-          <Text>Pronombres personales (yo, tú, él, nosotros, etc.).</Text>
-          <Text>Números y días de la semana.</Text>
-          <Text>Colores y emociones.</Text>
+          <Text style={styles.infoTitle}>
+            ¡Únete a nuestro foro de dudas y comparte tus preguntas!
+          </Text>
+          <Text>
+            Si tienes preguntas o necesitas ayuda con alguna funcionalidad,
+            este es el lugar perfecto para ti.
+          </Text>
         </View>
 
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Estructura gramatical</Text>
-          <Text>Gramática del lenguaje de señas (orden de las palabras).</Text>
-          <Text>Uso del espacio y la direccionalidad de los signos.</Text>
-          <Text>Verbos y tiempos verbales básicos.</Text>
-          <Text>Preguntas y respuestas en señas.</Text>
-        </View>
+        <TextInput
+          style={styles.commentInput}
+          placeholder="Escribe tu comentario aquí..."
+          value={comment}
+          onChangeText={setComment}
+        />
+        <Button title="Comentar" onPress={handleCommentSubmit} />
 
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Temas Específicos y Conversaciones</Text>
-          <Text>Familia, profesiones y entorno cotidiano.</Text>
-          <Text>Transporte y lugares en la ciudad.</Text>
-          <Text>Alimentos y acciones diarias.</Text>
-          <Text>Comunicación en entornos de trabajo y educación.</Text>
-        </View>
-      </View>
+        {loading ? (
+          <Text style={styles.loadingText}>Cargando comentarios...</Text>
+        ) : comments.length > 0 ? (
+          comments.map((c) => (
+            <CardForo
+              key={c.id}
+              comentario={c.comentario}
+              autor={c.autor}
+              creadoEn={c.creado_en}
+            />
+          ))
+        ) : (
+          <Text style={styles.noComments}>No hay comentarios aún.</Text>
+        )}
+      </ScrollView>
 
       <BottomTab />
     </View>
@@ -45,40 +146,25 @@ const Learn = () => {
 };
 
 const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0056b3' },
   container3: {
-    flex: 1,
-    backgroundColor: '#007bff',
     alignItems: 'center',
-    justifyContent: 'center',
     padding: 20,
-  },
-  container: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    backgroundColor: '#0056b3',
-    width: '100%',
-    height: '100%',
-    position: 'relative',
   },
   container0: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#fff',
     padding: 10,
-    marginBottom: 50,
+    marginBottom: 30,
     width: '100%',
+    borderRadius: 8,
   },
-  icon0: {
-    width: 30,
-    height: 30,
-    marginRight: 10,
-  },
+  icon0: { width: 30, height: 30, marginRight: 10 },
   title0: {
     color: '#050a30',
     fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
   },
   infoCard: {
     backgroundColor: '#fff',
@@ -92,11 +178,19 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  infoTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  commentInput: {
+    height: 50,
+    width: '100%',
+    borderColor: '#3a9bdc',
+    borderWidth: 1,
+    borderRadius: 15,
+    backgroundColor: '#fff',
+    paddingHorizontal: 10,
     marginBottom: 10,
   },
+  loadingText: { color: '#fff', marginTop: 20 },
+  noComments: { color: '#fff', marginTop: 20 },
 });
 
 export default Learn;

@@ -65,7 +65,7 @@ const Registration = () => {
         setSuccess(true);
         router.push('/screens/Login');
       } else {
-        Alert.alert('Error', response.data.message);
+        Alert.alert('Usuario registrado con exito');
       }
     } catch (error: any) {
       if (error.response) {
